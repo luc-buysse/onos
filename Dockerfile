@@ -31,13 +31,9 @@ ENV BUILD_DEPS \
     bzip2 \
     build-essential \
     curl \
-    unzip
+    unzip \
+    wget
 RUN apt-get update && apt-get install -y ${BUILD_DEPS}
-
-# Install Bazelisk, which will download the version of bazel specified in
-# .bazelversion
-RUN curl -L -o bazelisk https://github.com/bazelbuild/bazelisk/releases/download/v1.11.0/bazelisk-linux-amd64
-RUN chmod +x bazelisk && mv bazelisk /usr/bin
 
 # Build-stage environment variables
 ENV ONOS_ROOT /src/onos
@@ -48,6 +44,9 @@ ENV JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8
 COPY . ${ONOS_ROOT}
 WORKDIR ${ONOS_ROOT}
 
+RUN wget https://releases.bazel.build/6.0.0/rolling/6.0.0-pre.20220421.3/bazel-6.0.0-pre.20220421.3-linux-x86_64 -O bazel-custom
+RUN chmod +x ./bazel-custom
+
 # Build ONOS using the JDK pre-installed in the base image, instead of the
 # Bazel-provided remote one. By doing wo we make sure to build with the most
 # updated JDK, including bug and security fixes, independently of the Bazel
@@ -55,7 +54,7 @@ WORKDIR ${ONOS_ROOT}
 ARG JOBS
 ARG JAVA_PATH
 ARG PROFILE
-RUN cat WORKSPACE-docker >> WORKSPACE && bazelisk build onos \
+RUN cat WORKSPACE-docker >> WORKSPACE && ./bazel-custom build onos \
     --jobs ${JOBS} \
     --verbose_failures \
     --java_runtime_version=dockerjdk_11 \
