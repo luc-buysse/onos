@@ -37,14 +37,21 @@ public final class UpfSessionUplink implements UpfEntity {
     private final boolean dropping; // Used to convey dropping information
     private final int sessionMeterIdx;
 
+    private final int timeSampling;
+    private final int countSampling;
+
     private UpfSessionUplink(Ip4Address tunDestAddr,
                              Integer teid,
                              int sessionMeterIdx,
-                             boolean drop) {
+                             boolean drop,
+                             int timeSampling,
+                             int countSampling) {
         this.tunDestAddr = tunDestAddr;
         this.teid = teid;
         this.sessionMeterIdx = sessionMeterIdx;
         this.dropping = drop;
+        this.timeSampling = timeSampling;
+        this.countSampling = countSampling;
     }
 
     public static Builder builder() {
@@ -126,6 +133,24 @@ public final class UpfSessionUplink implements UpfEntity {
     }
 
     /**
+     * Get the value of the period used for sampling (coded over 3 bits)
+     *
+     * @return time sampling value
+     */
+    public int timeSampling() {
+        return timeSampling;
+    }
+
+    /**
+     * Get the value of the packet count used for sampling (coded over 3 bits)
+     *
+     * @return count sampling value
+     */
+    public int countSampling() {
+        return countSampling;
+    }
+
+    /**
      * Get the session meter index that is set by this UPF UE Session rule.
      *
      * @return Session meter index
@@ -144,6 +169,8 @@ public final class UpfSessionUplink implements UpfEntity {
         private Integer teid = null;
         public int sessionMeterIdx = DEFAULT_SESSION_INDEX;
         private boolean drop = false;
+        private int timeSampling = 0;
+        private int countSampling = 0;
 
         public Builder() {
 
@@ -183,6 +210,16 @@ public final class UpfSessionUplink implements UpfEntity {
             return this;
         }
 
+        public Builder withTimeSampling(int timeSampling) {
+            this.timeSampling = timeSampling;
+            return this;
+        }
+
+        public Builder withCountSampling(int countSampling) {
+            this.countSampling = countSampling;
+            return this;
+        }
+
         /**
          * Sets the meter index associated with this UE session.
          * If not set, default to {@link UpfEntity#DEFAULT_SESSION_INDEX}.
@@ -199,7 +236,7 @@ public final class UpfSessionUplink implements UpfEntity {
             // Match keys are required.
             checkNotNull(tunDstAddr, "Tunnel destination must be provided");
             checkNotNull(teid, "TEID must be provided");
-            return new UpfSessionUplink(tunDstAddr, teid, sessionMeterIdx, drop);
+            return new UpfSessionUplink(tunDstAddr, teid, sessionMeterIdx, drop, timeSampling, countSampling);
         }
     }
 }

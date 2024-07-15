@@ -37,16 +37,23 @@ public final class UpfSessionDownlink implements UpfEntity {
     private final boolean buffering;
     private final boolean dropping;
 
+    private final int timeSampling;
+    private final int countSampling;
+
     private UpfSessionDownlink(Ip4Address ipv4Address,
                                Byte tunPeerId,
                                int sessionMeterIdx,
                                boolean buffering,
-                               boolean drop) {
+                               boolean drop,
+                               int timeSampling,
+                               int countSampling) {
         this.ueAddress = ipv4Address;
         this.sessionMeterIdx = sessionMeterIdx;
         this.tunPeerId = tunPeerId;
         this.buffering = buffering;
         this.dropping = drop;
+        this.timeSampling = timeSampling;
+        this.countSampling = countSampling;
     }
 
     public static Builder builder() {
@@ -146,7 +153,25 @@ public final class UpfSessionDownlink implements UpfEntity {
      * @return Session meter index
      */
     public int sessionMeterIdx() {
-        return this.sessionMeterIdx;
+        return sessionMeterIdx;
+    }
+
+    /**
+     * Get the value of the period used for sampling (coded over 3 bits)
+     *
+     * @return time sampling value
+     */
+    public int timeSampling() {
+        return timeSampling;
+    }
+
+    /**
+     * Get the value of the packet count used for sampling (coded over 3 bits)
+     *
+     * @return count sampling value
+     */
+    public int countSampling() {
+        return countSampling;
     }
 
     @Override
@@ -160,6 +185,8 @@ public final class UpfSessionDownlink implements UpfEntity {
         private int sessionMeterIdx = DEFAULT_SESSION_INDEX;
         private boolean buffer = false;
         private boolean drop = false;
+        private int timeSampling = 0;
+        private int countSampling = 0;
 
         public Builder() {
 
@@ -209,6 +236,16 @@ public final class UpfSessionDownlink implements UpfEntity {
             return this;
         }
 
+        public Builder withTimeSampling(int timeSampling) {
+            this.timeSampling = timeSampling;
+            return this;
+        }
+
+        public Builder withCountSampling(int countSampling) {
+            this.countSampling = countSampling;
+            return this;
+        }
+
         /**
          * Sets the meter index associated with this UE session.
          * If not set, default to {@link UpfEntity#DEFAULT_SESSION_INDEX}.
@@ -224,7 +261,7 @@ public final class UpfSessionDownlink implements UpfEntity {
         public UpfSessionDownlink build() {
             // Match fields are required
             checkNotNull(ueAddress, "UE address must be provided");
-            return new UpfSessionDownlink(ueAddress, tunPeerId, sessionMeterIdx, buffer, drop);
+            return new UpfSessionDownlink(ueAddress, tunPeerId, sessionMeterIdx, buffer, drop, timeSampling, countSampling);
         }
     }
 }
